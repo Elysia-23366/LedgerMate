@@ -3,67 +3,161 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LedgerMate · 财务智囊</title>
+  <title>SwarmAgent · 财务智囊</title>
   <style>
     :root { --ink:#091e64; --muted:#8192c2; --line:rgba(92,91,255,.6); --violet:#724aff; --blue:#237eff; }
     * { box-sizing:border-box; }
-    body { margin:0; min-width:980px; color:var(--ink); font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif; background:#fff; }
-    button,textarea { font:inherit; }
-    .app { min-height:100vh; display:flex; overflow:hidden; }
-    .sidebar { position:relative; width:256px; flex:0 0 256px; min-height:100vh; padding:35px 12px 28px; border-right:1px solid #dfe5fb; background:linear-gradient(115deg,#fff 2%,#fafbff 75%,#f6f4ff); box-shadow:8px 0 35px rgba(122,161,255,.04); }
+    body { margin:0; min-width:980px; height:100dvh; overflow:hidden; color:var(--ink); font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif; background:#fff; }
+    button,input,textarea { font:inherit; }
+    .app { height:100dvh; min-height:0; display:flex; overflow:hidden; }
+    .sidebar { position:relative; isolation:isolate; overflow:hidden; width:256px; flex:0 0 256px; height:100%; min-height:0; padding:35px 12px 28px; border-right:1px solid #dfe5fb; background:#fcfdff url('swarmagent-sidebar-background-v1.png') center / cover no-repeat; box-shadow:8px 0 35px rgba(122,161,255,.04); }
     .brand { display:flex; align-items:center; gap:9px; margin:0 12px 32px; color:#071c62; font-weight:750; font-size:25px; letter-spacing:-1.35px; }
-    .brand-mark { width:29px; height:31px; flex:0 0 29px; filter:drop-shadow(0 1px 2px rgba(61,124,255,.15)); }
-    .new-task { height:61px; width:100%; border:0; border-radius:9px; color:white; cursor:pointer; text-align:left; padding:0 20px; font-size:18px; font-weight:650; background:linear-gradient(105deg,#2f8dff,#7051f8 72%); box-shadow:0 11px 22px rgba(77,89,244,.21); transition:.2s; }
-    .new-task:hover { transform:translateY(-2px); box-shadow:0 14px 26px rgba(77,89,244,.3); }
-    .new-task span { display:inline-block; font-size:36px; font-weight:200; vertical-align:-4px; margin-right:17px; }
-    .nav { margin-top:24px; }
-    .nav-item { width:100%; height:57px; padding:0 20px; border:0; display:flex; gap:17px; align-items:center; border-radius:8px; color:#0c236d; background:transparent; font-size:17px; font-weight:650; text-align:left; cursor:pointer; }
-    .nav-item:hover { background:#f2f5ff; } .nav-icon { width:23px; height:23px; fill:none; stroke:currentColor; stroke-width:1.8; }
-    .section-title { margin:32px 12px 17px; color:#7688bb; font-size:15px; font-weight:650; }
+    .brand-copy { display:flex; flex-direction:column; line-height:1; }.brand-subtitle { display:none; margin-top:7px; color:#6b789f; font-size:13px; font-weight:650; letter-spacing:3px; }
+    .brand-mark { width:29px; height:31px; flex:0 0 29px; object-fit:contain; transform:scale(1.3); transform-origin:center; filter:drop-shadow(0 1px 2px rgba(61,124,255,.15)); }
+    /* 左侧导航改为紧凑行高，保留侧栏宽度，不再像大块操作卡片。 */
+    .new-task { height:48px; }
+    /* 加号与其他导航图标共用同一列宽，保证两行标签从同一条竖线开始。 */
+    .new-task span { width:20px; height:20px; flex:0 0 20px; display:grid; place-items:center; position:relative; top:-1px; font-size:24px; font-weight:300; line-height:1; }
+    .nav { margin-top:16px; }
+    .sidebar-action { width:100%; padding:0 15px; border:1px solid rgba(219,226,247,.82); display:flex; gap:12px; align-items:center; border-radius:8px; color:#0c236d; background:rgba(237,241,252,.8); font-size:15px; font-weight:650; text-align:left; cursor:pointer; transition:transform .2s,box-shadow .2s,background .2s,color .2s; }
+    .nav-item { height:46px; }
+    .sidebar-action:hover { background:#e8edfc; }.sidebar-action.is-active { color:#fff; border-color:transparent; background:linear-gradient(105deg,#2f8dff,#7051f8 72%); box-shadow:0 11px 22px rgba(77,89,244,.21); }.sidebar-action.is-active:hover { transform:translateY(-2px); box-shadow:0 14px 26px rgba(77,89,244,.3); }.sidebar-action:focus-visible { outline:2px solid #3f82ff; outline-offset:3px; }.nav-icon { width:20px; height:20px; flex:0 0 20px; fill:none; stroke:currentColor; stroke-width:1.8; }
+    .section-title { margin:27px 12px 15px; color:#7688bb; font-size:14px; font-weight:650; }
     .empty { margin-top:47px; text-align:center; color:#7789ba; font-size:17px; font-weight:600; }
     .empty svg { display:block; width:36px; height:36px; margin:0 auto 12px; fill:none; stroke:currentColor; stroke-width:1.8; }
     .settings { position:absolute; left:12px; right:12px; bottom:23px; }
-    .main { position:relative; flex:1; min-height:100vh; overflow:hidden; background:linear-gradient(136deg,#fff 1%,#fff 39%,#fdfcff 100%); }
-    .glow { position:absolute; z-index:0; border-radius:50%; filter:blur(48px); pointer-events:none; opacity:.58; }
-    .glow.one { width:690px; height:570px; top:-260px; left:120px; background:#78c4ff; opacity:.42; }
-    .glow.two { width:500px; height:475px; top:-185px; right:-30px; background:#8fa3ff; opacity:.5; }
-    .glow.three { width:560px; height:300px; bottom:-160px; left:75px; background:#9aa3ff; opacity:.33; }
-    .glow.four { width:540px; height:360px; top:340px; right:36px; background:#b9b4ff; opacity:.22; }
+    .main { position:relative; flex:1; height:100%; min-height:0; overflow:hidden; background:#fff url('ledgermate-cloud-background-soft.png') center center / cover no-repeat; }
+    /* 两片云层：右上与左下各由蓝、紫两层融合而成，中间保持留白。 */
+    .glow { position:absolute; z-index:0; border-radius:50%; filter:blur(76px); pointer-events:none; animation-timing-function:ease-in-out; animation-iteration-count:infinite; }
+    .glow.one { width:760px; height:590px; top:-245px; right:-100px; background:#8bd8ff; opacity:.38; animation-name:cloud-upper; animation-duration:32s; }
+    .glow.two { width:670px; height:570px; top:-235px; right:-185px; background:#a795ff; opacity:.34; animation-name:cloud-upper; animation-duration:32s; }
+    .glow.three { width:650px; height:460px; bottom:-265px; left:-135px; background:#8fd3ff; opacity:.32; animation-name:cloud-lower; animation-duration:36s; }
+    .glow.four { width:630px; height:480px; bottom:-295px; left:10px; background:#ad9cff; opacity:.31; animation-name:cloud-lower; animation-duration:36s; }
+    @keyframes cloud-upper { 0%,100% { transform:translate3d(0,0,0) scale(1); } 50% { transform:translate3d(-38px,46px,0) scale(1.08); } }
+    @keyframes cloud-lower { 0%,100% { transform:translate3d(0,0,0) scale(1); } 50% { transform:translate3d(48px,-34px,0) scale(1.08); } }
+    @media (prefers-reduced-motion:reduce) { .glow { animation:none; } }
     .content { position:relative; z-index:1; width:min(1118px,calc(100% - 90px)); margin:0 auto; padding-top:215px; }
+    .finance-page { position:relative; z-index:1; display:none; width:min(1340px,calc(100% - 56px)); margin:0 auto; padding-top:85px; }
+    .finance-title { margin:0; color:#081b58; font-size:48px; line-height:1.12; font-weight:780; letter-spacing:-2px; }.finance-subtitle { margin:10px 0 36px; color:#7b86a9; font-size:24px; font-weight:550; }
+    .finance-cards { display:flex; justify-content:center; align-items:flex-start; margin:-128px auto 0; }
+    .finance-team-image { display:block; width:min(100%,1300px); height:auto; }
+    .finance-cards { position:relative; }
+    .sushi-hitbox { position:absolute; z-index:2; left:3%; bottom:10%; width:20%; height:66%; border:0; cursor:pointer; background:transparent; border-radius:32px; }
+    .sushi-hitbox:focus-visible { outline:3px solid #5b6cff; outline-offset:4px; }
+    .luheng-hitbox { position:absolute; z-index:2; left:25.5%; bottom:4%; width:29%; height:88%; border:0; cursor:pointer; background:transparent; border-radius:34px; }
+    .luheng-hitbox:focus-visible { outline:3px solid #5b6cff; outline-offset:4px; }
+    .linmo-hitbox { position:absolute; z-index:2; left:57.5%; bottom:7%; width:20%; height:72%; border:0; cursor:pointer; background:transparent; border-radius:32px; }
+    .linmo-hitbox:focus-visible { outline:3px solid #5b6cff; outline-offset:4px; }
+    .tangnuo-hitbox { position:absolute; z-index:2; left:77.5%; bottom:7%; width:19%; height:72%; border:0; cursor:pointer; background:transparent; border-radius:32px; }
+    .tangnuo-hitbox:focus-visible { outline:3px solid #5b6cff; outline-offset:4px; }
+    .sushi-detail-page { position:relative; z-index:2; display:none; min-height:100vh; overflow:hidden; padding:0; background:#fff; }
+    .sushi-detail-shell { width:100%; min-height:100vh; margin:0; display:grid; grid-template-columns:minmax(430px,47%) minmax(460px,53%); gap:0; }
+    .sushi-visual { position:relative; min-height:100vh; overflow:hidden; isolation:isolate; background:#f6faff url('sushi-detail-scene.png') center / cover no-repeat; }
+    /* 场景的最右侧渐隐至内容背景，去掉图片与信息区之间的硬切线。 */
+    .sushi-visual::after { content:""; position:absolute; z-index:2; top:0; right:0; bottom:0; width:clamp(78px,10vw,155px); background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.76) 62%,#fff 100%); pointer-events:none; }
+    .sushi-detail-image { display:none; }
+    .sushi-copy { width:min(690px,calc(100% - 84px)); margin:auto; padding:52px 0 42px; }.sushi-name { margin:0; color:#06174f; font-size:68px; line-height:1; letter-spacing:-5px; font-weight:800; }.sushi-role { margin:13px 0 22px; color:#172961; font-size:28px; font-weight:650; }.sushi-intro { max-width:650px; margin:0 0 30px; color:#65749b; font-size:20px; font-weight:520; line-height:1.65; }
+    .sushi-section-title { margin:22px 0 9px; color:#0b1f5f; font-size:25px; font-weight:780; }.sushi-capability { display:flex; align-items:center; gap:17px; min-height:76px; padding:11px 0; border-bottom:1px solid #dbe3fb; }.sushi-capability-icon { width:48px; height:48px; flex:0 0 48px; display:grid; place-items:center; border-radius:50%; color:#4d6fff; background:linear-gradient(145deg,#edf4ff,#f2ecff); font-size:24px; }.sushi-capability strong { display:block; color:#152861; font-size:18px; }.sushi-capability small { display:block; margin-top:4px; color:#7180a6; font-size:15px; font-weight:550; }
+    .sushi-result { display:flex; align-items:flex-start; gap:17px; margin:11px 0 19px; color:#6a7aa3; font-size:16px; line-height:1.55; }.sushi-result-icon { width:48px; height:48px; flex:0 0 48px; display:grid; place-items:center; border-radius:50%; color:#725df3; background:#f3f0ff; font-size:23px; }
+    .sushi-composer { display:flex; align-items:center; gap:11px; height:64px; padding:7px 8px 7px 20px; border:1.5px solid #b6c5f5; border-radius:20px; background:rgba(255,255,255,.88); box-shadow:0 7px 18px rgba(71,94,173,.06); }.sushi-composer input { width:100%; min-width:0; border:0; outline:0; color:#203567; background:transparent; font-size:17px; }.sushi-composer input::placeholder { color:#8596be; }.sushi-send-mini { width:48px; height:48px; flex:0 0 48px; display:grid; place-items:center; border:0; border-radius:50%; color:#fff; background:linear-gradient(135deg,#7d55f3,#2787ff); cursor:pointer; box-shadow:0 5px 12px rgba(77,92,237,.28); }.sushi-send-mini:hover,.sushi-consult:hover { transform:translateY(-1px); filter:saturate(1.1); }.sushi-send-mini svg { width:23px; height:23px; fill:none; stroke:currentColor; stroke-width:2.4; }
+    .sushi-consult { width:100%; height:58px; margin-top:17px; border:0; border-radius:18px; color:#fff; background:linear-gradient(105deg,#7948ef,#2785ff); cursor:pointer; box-shadow:0 9px 19px rgba(76,93,235,.24); font-size:19px; font-weight:720; }.sushi-note { margin:17px 0 0; color:#8b96b5; font-size:14px; }
+    .app.sushi-detail-mode .content,.app.sushi-detail-mode .finance-page { display:none; }.app.sushi-detail-mode .sushi-detail-page { display:block; }
+    .luheng-detail-page { position:relative; z-index:2; display:none; min-height:100vh; overflow:hidden; padding:0; background:#fff; }
+    .luheng-detail-shell { width:100%; min-height:100vh; margin:0; display:grid; grid-template-columns:minmax(430px,47%) minmax(460px,53%); gap:0; }
+    .luheng-visual { position:relative; min-height:100vh; overflow:hidden; isolation:isolate; background:#f6faff url('zhouquan-detail-scene-v1.png') center / cover no-repeat; }
+    .luheng-visual::after { content:""; position:absolute; z-index:2; top:0; right:0; bottom:0; width:clamp(78px,10vw,155px); background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.76) 62%,#fff 100%); pointer-events:none; }
+    .luheng-copy { width:min(690px,calc(100% - 84px)); margin:auto; padding:52px 0 42px; }.luheng-name { margin:0; color:#06174f; font-size:68px; line-height:1; letter-spacing:-5px; font-weight:800; }.luheng-role { margin:13px 0 22px; color:#172961; font-size:28px; font-weight:650; }.luheng-intro { max-width:650px; margin:0 0 30px; color:#65749b; font-size:20px; font-weight:520; line-height:1.65; }
+    .luheng-section-title { margin:22px 0 9px; color:#0b1f5f; font-size:25px; font-weight:780; }.luheng-capability { display:flex; align-items:center; gap:17px; min-height:76px; padding:11px 0; border-bottom:1px solid #dbe3fb; }.luheng-capability-icon { width:48px; height:48px; flex:0 0 48px; display:grid; place-items:center; border-radius:50%; color:#4d6fff; background:linear-gradient(145deg,#edf4ff,#f2ecff); font-size:24px; }.luheng-capability strong { display:block; color:#152861; font-size:18px; }.luheng-capability small { display:block; margin-top:4px; color:#7180a6; font-size:15px; font-weight:550; }
+    .luheng-result { display:flex; align-items:flex-start; gap:17px; margin:11px 0 19px; color:#6a7aa3; font-size:16px; line-height:1.55; }.luheng-result-icon { width:48px; height:48px; flex:0 0 48px; display:grid; place-items:center; border-radius:50%; color:#725df3; background:#f3f0ff; font-size:23px; }
+    .luheng-composer { display:flex; align-items:center; gap:11px; height:64px; padding:7px 8px 7px 20px; border:1.5px solid #b6c5f5; border-radius:20px; background:rgba(255,255,255,.88); box-shadow:0 7px 18px rgba(71,94,173,.06); }.luheng-composer input { width:100%; min-width:0; border:0; outline:0; color:#203567; background:transparent; font-size:17px; }.luheng-composer input::placeholder { color:#8596be; }.luheng-send-mini { width:48px; height:48px; flex:0 0 48px; display:grid; place-items:center; border:0; border-radius:50%; color:#fff; background:linear-gradient(135deg,#7d55f3,#2787ff); cursor:pointer; box-shadow:0 5px 12px rgba(77,92,237,.28); }.luheng-send-mini:hover,.luheng-consult:hover { transform:translateY(-1px); filter:saturate(1.1); }.luheng-send-mini svg { width:23px; height:23px; fill:none; stroke:currentColor; stroke-width:2.4; }
+    .luheng-consult { width:100%; height:58px; margin-top:17px; border:0; border-radius:18px; color:#fff; background:linear-gradient(105deg,#7948ef,#2785ff); cursor:pointer; box-shadow:0 9px 19px rgba(76,93,235,.24); font-size:19px; font-weight:720; }.luheng-note { margin:17px 0 0; color:#8b96b5; font-size:14px; }
+    .app.sushi-detail-mode .luheng-detail-page { display:none; }.app.luheng-detail-mode .content,.app.luheng-detail-mode .finance-page,.app.luheng-detail-mode .sushi-detail-page { display:none; }.app.luheng-detail-mode .luheng-detail-page { display:block; }
+    .linmo-detail-page { position:relative; z-index:2; display:none; min-height:100vh; overflow:hidden; padding:0; background:#fff; }
+    .linmo-detail-shell { width:100%; min-height:100vh; margin:0; display:grid; grid-template-columns:minmax(430px,47%) minmax(460px,53%); gap:0; }
+    .linmo-visual { position:relative; min-height:100vh; overflow:hidden; isolation:isolate; background:#f6faff url('linmo-detail-scene-v1.png') center / cover no-repeat; }
+    .linmo-visual::after { content:""; position:absolute; z-index:2; top:0; right:0; bottom:0; width:clamp(78px,10vw,155px); background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.76) 62%,#fff 100%); pointer-events:none; }
+    /* 返回按钮始终保持无边框的静态样式，悬停、点击或获得焦点都不切换成按钮态。 */
+    .detail-page-back { position:absolute; z-index:10; top:28px; left:30px; height:44px; display:inline-flex; align-items:center; gap:8px; padding:0 13px 0 8px; border:1px solid transparent; border-radius:10px; color:#142c72; background:rgba(255,255,255,.74); cursor:pointer; font-size:16px; font-weight:650; line-height:1; }.detail-page-back:hover,.detail-page-back:active,.detail-page-back:focus,.detail-page-back:focus-visible { outline:none; border-color:transparent; background:rgba(255,255,255,.74); box-shadow:none; }.detail-page-back svg { width:21px; height:21px; flex:0 0 21px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+    .linmo-copy { width:min(690px,calc(100% - 84px)); margin:auto; padding:52px 0 42px; }.linmo-name { margin:0; color:#06174f; font-size:68px; line-height:1; letter-spacing:-5px; font-weight:800; }.linmo-role { margin:13px 0 22px; color:#172961; font-size:28px; font-weight:650; }.linmo-intro { max-width:650px; margin:0 0 30px; color:#65749b; font-size:20px; font-weight:520; line-height:1.65; }
+    .linmo-section-title { margin:22px 0 9px; color:#0b1f5f; font-size:25px; font-weight:780; }.linmo-capability { display:flex; align-items:center; gap:17px; min-height:76px; padding:11px 0; border-bottom:1px solid #dbe3fb; }.linmo-capability-icon { width:48px; height:48px; flex:0 0 48px; display:grid; place-items:center; border-radius:50%; color:#4d6fff; background:linear-gradient(145deg,#edf4ff,#f2ecff); font-size:24px; }.linmo-capability strong { display:block; color:#152861; font-size:18px; }.linmo-capability small { display:block; margin-top:4px; color:#7180a6; font-size:15px; font-weight:550; }
+    .linmo-result { display:flex; align-items:flex-start; gap:17px; margin:11px 0 19px; color:#6a7aa3; font-size:16px; line-height:1.55; }.linmo-result-icon { width:48px; height:48px; flex:0 0 48px; display:grid; place-items:center; border-radius:50%; color:#725df3; background:#f3f0ff; font-size:23px; }
+    .linmo-composer { display:flex; align-items:center; gap:11px; height:64px; padding:7px 8px 7px 20px; border:1.5px solid #b6c5f5; border-radius:20px; background:rgba(255,255,255,.88); box-shadow:0 7px 18px rgba(71,94,173,.06); }.linmo-composer input { width:100%; min-width:0; border:0; outline:0; color:#203567; background:transparent; font-size:17px; }.linmo-composer input::placeholder { color:#8596be; }.linmo-send-mini { width:48px; height:48px; flex:0 0 48px; display:grid; place-items:center; border:0; border-radius:50%; color:#fff; background:linear-gradient(135deg,#7d55f3,#2787ff); cursor:pointer; box-shadow:0 5px 12px rgba(77,92,237,.28); }.linmo-send-mini:hover,.linmo-consult:hover { transform:translateY(-1px); filter:saturate(1.1); }.linmo-send-mini svg { width:23px; height:23px; fill:none; stroke:currentColor; stroke-width:2.4; }
+    .linmo-consult { width:100%; height:58px; margin-top:17px; border:0; border-radius:18px; color:#fff; background:linear-gradient(105deg,#7948ef,#2785ff); cursor:pointer; box-shadow:0 9px 19px rgba(76,93,235,.24); font-size:19px; font-weight:720; }.linmo-note { margin:17px 0 0; color:#8b96b5; font-size:14px; }
+    .app.linmo-detail-mode .content,.app.linmo-detail-mode .finance-page,.app.linmo-detail-mode .sushi-detail-page,.app.linmo-detail-mode .luheng-detail-page { display:none; }.app.linmo-detail-mode .linmo-detail-page { display:block; }
+    .tangnuo-detail-page { position:relative; z-index:2; display:none; min-height:100dvh; overflow:hidden; padding:0; background:#fff; }
+    .tangnuo-detail-shell { width:100%; min-height:100dvh; margin:0; display:grid; grid-template-columns:minmax(430px,47%) minmax(460px,53%); gap:0; }
+    .tangnuo-visual { position:relative; min-height:100dvh; overflow:hidden; isolation:isolate; background:#f6faff url('tangnuo-detail-scene-no-back.png') center / cover no-repeat; }
+    .tangnuo-visual::after { content:""; position:absolute; z-index:2; top:0; right:0; bottom:0; width:clamp(78px,10vw,155px); background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.76) 62%,#fff 100%); pointer-events:none; }
+    .tangnuo-copy { width:min(690px,calc(100% - 84px)); margin:auto; padding:52px 0 42px; }.tangnuo-name { margin:0; color:#06174f; font-size:68px; line-height:1; letter-spacing:-5px; font-weight:800; }.tangnuo-role { margin:13px 0 22px; color:#172961; font-size:28px; font-weight:650; }.tangnuo-intro { max-width:650px; margin:0 0 30px; color:#65749b; font-size:20px; font-weight:520; line-height:1.65; }
+    .tangnuo-section-title { margin:22px 0 9px; color:#0b1f5f; font-size:25px; font-weight:780; }.tangnuo-capability { display:flex; align-items:center; gap:17px; min-height:76px; padding:11px 0; border-bottom:1px solid #dbe3fb; }.tangnuo-capability-icon { width:48px; height:48px; flex:0 0 48px; display:grid; place-items:center; border-radius:50%; color:#4d6fff; background:linear-gradient(145deg,#edf4ff,#f2ecff); font-size:24px; }.tangnuo-capability strong { display:block; color:#152861; font-size:18px; }.tangnuo-capability small { display:block; margin-top:4px; color:#7180a6; font-size:15px; font-weight:550; }
+    .tangnuo-result { display:flex; align-items:flex-start; gap:17px; margin:11px 0 19px; color:#6a7aa3; font-size:16px; line-height:1.55; }.tangnuo-result-icon { width:48px; height:48px; flex:0 0 48px; display:grid; place-items:center; border-radius:50%; color:#725df3; background:#f3f0ff; font-size:23px; }
+    .tangnuo-composer { display:flex; align-items:center; gap:11px; height:64px; padding:7px 8px 7px 20px; border:1.5px solid #b6c5f5; border-radius:20px; background:rgba(255,255,255,.88); box-shadow:0 7px 18px rgba(71,94,173,.06); }.tangnuo-composer input { width:100%; min-width:0; border:0; outline:0; color:#203567; background:transparent; font-size:17px; }.tangnuo-composer input::placeholder { color:#8596be; }.tangnuo-send-mini { width:48px; height:48px; flex:0 0 48px; display:grid; place-items:center; border:0; border-radius:50%; color:#fff; background:linear-gradient(135deg,#7d55f3,#2787ff); cursor:pointer; box-shadow:0 5px 12px rgba(77,92,237,.28); }.tangnuo-send-mini:hover,.tangnuo-consult:hover { transform:translateY(-1px); filter:saturate(1.1); }.tangnuo-send-mini svg { width:23px; height:23px; fill:none; stroke:currentColor; stroke-width:2.4; }
+    .tangnuo-consult { width:100%; height:58px; margin-top:17px; border:0; border-radius:18px; color:#fff; background:linear-gradient(105deg,#7948ef,#2785ff); cursor:pointer; box-shadow:0 9px 19px rgba(76,93,235,.24); font-size:19px; font-weight:720; }.tangnuo-note { margin:17px 0 0; color:#8b96b5; font-size:14px; }
+    .app.tangnuo-detail-mode .content,.app.tangnuo-detail-mode .finance-page,.app.tangnuo-detail-mode .sushi-detail-page,.app.tangnuo-detail-mode .luheng-detail-page,.app.tangnuo-detail-mode .linmo-detail-page { display:none; }.app.tangnuo-detail-mode .tangnuo-detail-page { display:block; }
+    /* 卡片由人物、半透明色板、底部白雾和文字四层组成，不再使用截图裁片。 */
+    .finance-card { position:relative; flex:0 0 auto; overflow:hidden; border:2px solid rgba(255,255,255,.72); border-radius:28px; box-shadow:0 17px 35px rgba(80,99,190,.13); isolation:isolate; }.finance-card::after { content:""; position:absolute; z-index:3; left:0; right:0; bottom:0; height:27%; background:linear-gradient(transparent 0%,rgba(255,255,255,.3) 52%,rgba(255,255,255,.66) 100%); pointer-events:none; }.advisor-portrait { position:absolute; z-index:2; left:50%; width:auto; max-width:none; transform:translateX(-50%); object-fit:contain; }.advisor-card-copy { position:absolute; z-index:4; left:28px; right:24px; bottom:25px; color:#071a59; }.advisor-card-name { display:block; font-size:34px; font-weight:780; line-height:1.1; }.advisor-card-role { display:block; margin-top:7px; font-size:19px; font-weight:600; }.advisor-card-link { display:block; margin-top:23px; color:#5568df; font-size:16px; font-weight:700; }
+    .finance-card.sushi { width:270px; height:486px; background:#fff6dc url('advisor-card-sushi-bg.png') center/cover no-repeat; }.finance-card.sushi .advisor-portrait { height:96%; bottom:-60px; }.finance-card.zhou { width:340px; height:594px; margin-bottom:-10px; background:#bee0ff url('advisor-card-luheng-bg.png') center/cover no-repeat; }.finance-card.zhou .advisor-portrait { height:108%; bottom:-60px; }.finance-card.lin { width:280px; height:542px; margin-bottom:16px; background:#d7f7ff url('advisor-card-linmo-bg.png') center/cover no-repeat; }.finance-card.lin .advisor-portrait { height:104%; bottom:-58px; }.finance-card.tang { width:255px; height:488px; margin-bottom:30px; background:#ece7ff url('advisor-card-tangnuo-bg.png') center/cover no-repeat; }.finance-card.tang .advisor-portrait { height:106%; bottom:-56px; }
+    .finance-pager { display:flex; align-items:center; justify-content:center; gap:33px; margin-top:28px; color:#6f7bd3; font-size:19px; font-weight:700; }.finance-pager button { width:54px; height:54px; border:1px solid #e0e6fb; border-radius:50%; color:#4964d6; background:rgba(255,255,255,.76); font-size:35px; line-height:1; cursor:pointer; box-shadow:0 4px 15px rgba(64,84,155,.08); }.finance-pager button:hover { transform:translateY(-1px); }.finance-pager span { color:#192665; }.app.finance-mode .content { display:none; }.app.finance-mode .finance-page { display:block; }
     .hero { text-align:center; position:relative; }
     .sparkle { position:absolute; left:calc(50% - 181px); top:-22px; width:34px; height:34px; filter:drop-shadow(0 0 8px rgba(104,91,255,.36)); }
     h1 { margin:0; color:#071b67; font-size:38px; line-height:1.25; letter-spacing:-1.2px; font-weight:780; }
     .subtitle { margin:13px 0 52px; color:#7a8ec6; font-size:19px; font-weight:600; }
-    .workbox { position:relative; min-height:225px; padding:29px 25px 20px; border:2px solid var(--line); border-radius:25px; background:rgba(255,255,255,.88); box-shadow:0 17px 37px rgba(94,99,206,.08); }
+    .workbox { position:relative; z-index:2; min-height:225px; padding:29px 25px 20px; border:2px solid var(--line); border-radius:25px; background:#fff; box-shadow:0 17px 37px rgba(94,99,206,.08); }
     /* 猫与输入框绑定：脚、尾巴压住右上沿，不随标题区域漂移。 */
     /* 人物与阴影是同一个定位组，缩放和移动时不会彼此脱节。 */
-    .cat-wrap { position:absolute; z-index:3; right:-12px; top:-270px; width:310px; pointer-events:none; }
-    /* 阴影落在输入框上沿：让角色看起来是坐在边沿，而不是悬在半空。 */
-    .cat-wrap::after { content:""; position:absolute; z-index:1; top:262px; left:74px; width:198px; height:25px; border-radius:50%; background:rgba(43,53,104,.24); filter:blur(10px); transform:rotate(-7deg); transform-origin:center; pointer-events:none; }
+    .cat-wrap { position:absolute; z-index:3; right:-36px; top:-270px; width:310px; pointer-events:none; }
+    /* 猫素材已自带落地投影，不再在对话框上沿叠加人工椭圆阴影。 */
+    .cat-wrap::after { display:none; }
     .cat { position:relative; z-index:2; display:block; width:100%; height:auto; object-fit:contain; }
     /* 不复制角色轮廓做投影，避免腿和尾巴的影子铺进输入框而显得悬浮。 */
     .cat-silhouette-shadow { display:none; }
-    textarea { resize:none; display:block; width:100%; height:112px; outline:0; border:0; color:#26356d; background:transparent; font-size:19px; line-height:1.65; }
+    /* 右侧留给坐在边沿的角色：文字和滚动条都止在角色左侧。 */
+    textarea { resize:none; display:block; width:calc(100% - 140px); height:112px; outline:0; border:0; color:#26356d; background:transparent; font-size:19px; line-height:1.65; }
     textarea::placeholder { color:#8295c8; font-weight:600; }
     .controls { position:absolute; left:25px; right:21px; bottom:15px; display:flex; align-items:center; justify-content:space-between; }
     .circle-btn { width:47px; height:47px; display:grid; place-items:center; cursor:pointer; color:#112b77; background:linear-gradient(#fff,#f9fbff); border:1px solid #dbe2f7; border-radius:13px; box-shadow:0 3px 9px rgba(73,106,177,.05); transition:.2s; }
     .circle-btn:hover { color:#fff; background:var(--blue); transform:translateY(-1px); }
     .circle-btn svg { width:26px; height:26px; fill:none; stroke:currentColor; stroke-width:1.8; }
-    .right-controls { display:flex; align-items:center; gap:18px; } .counter { color:#768ac5; font-size:17px; font-weight:600; }
-    .send { width:71px; height:53px; border:0; border-radius:14px; display:grid; place-items:center; cursor:pointer; color:#fff; background:linear-gradient(135deg,#198dff,#7850f6 78%); box-shadow:0 7px 15px rgba(75,102,237,.26); transition:.2s; }
-    .send:hover { transform:translateY(-2px); filter:saturate(1.2); }.send svg { width:27px; height:27px; fill:none; stroke:currentColor; stroke-width:2.5; }
-    .agent-area { height:94px; margin-top:0; display:flex; justify-content:center; align-items:flex-start; gap:13px; padding-top:12px; border-radius:0 0 25px 25px; background:linear-gradient(105deg,rgba(172,219,255,.6),rgba(237,231,255,.78)); }
+    .right-controls { display:flex; align-items:center; gap:12px; } .counter { color:#768ac5; font-size:17px; font-weight:600; }
+    .send { width:47px; height:47px; border:0; border-radius:13px; display:grid; place-items:center; cursor:pointer; color:#fff; background:linear-gradient(135deg,#198dff,#7850f6 78%); box-shadow:0 7px 15px rgba(75,102,237,.26); transition:.2s; }
+    .send:hover { transform:translateY(-2px); filter:saturate(1.2); }.send svg { width:26px; height:26px; fill:none; stroke:currentColor; stroke-width:2.5; }
+    .agent-area { position:relative; z-index:1; height:119px; margin-top:-25px; display:flex; justify-content:center; align-items:flex-start; gap:13px; padding-top:37px; border-radius:0 0 25px 25px; background:linear-gradient(105deg,rgba(172,219,255,.6),rgba(237,231,255,.78)); }
     .agent { min-width:194px; height:70px; padding:6px 14px 6px 8px; display:flex; align-items:center; gap:10px; border:1px solid #d2def7; border-radius:38px; color:#11266e; background:rgba(255,255,255,.76); box-shadow:0 5px 12px rgba(54,97,160,.06); cursor:pointer; transition:.2s; }
     .agent:hover,.agent.active { transform:translateY(-3px); border-color:#8b67ff; background:#fff; box-shadow:0 10px 21px rgba(85,85,220,.16); }
     .avatar { width:52px; height:52px; flex:0 0 52px; display:grid; place-items:center; overflow:hidden; border-radius:50%; font-size:31px; background:radial-gradient(circle at 35% 20%,#fff,#c9dcff); border:1px solid #dbe4fa; }
     .agent-copy { text-align:left; white-space:nowrap; }.agent-name { font-size:16px; font-weight:750; line-height:1.4; }.agent-role { color:#788abe; font-size:14px; font-weight:600; line-height:1.3; }.agent.active .agent-role { color:#8153f4; }
     .toast { position:fixed; z-index:5; left:50%; bottom:28px; opacity:0; transform:translate(-50%,18px); padding:10px 17px; border-radius:20px; color:#fff; background:#172868; box-shadow:0 8px 25px rgba(15,30,98,.25); transition:.25s; font-size:14px; }.toast.show { opacity:1; transform:translate(-50%,0); }
-    @media (max-width:1180px) { .content { width:calc(100% - 55px); }.agent { min-width:0; width:22%; }.cat-wrap { right:-20px; top:-225px; width:260px; }.cat-wrap::after { top:220px; left:61px; width:168px; height:22px; filter:blur(9px); }.sparkle{ left:calc(50% - 150px); } }
-    .avatar { position:relative; }
-    .avatar img { position:absolute; width:285%; max-width:none; height:auto; left:50%; top:-7%; transform:translateX(-50%); }
-    .avatar img[data-person="zhouquan"] { width:300%; top:-12%; }
-    .avatar img[data-person="tangnuo"] { width:300%; top:-5%; left:47%; }
-    [hidden] { display:none !important; }
+    @media (max-width:1180px) { .content { width:calc(100% - 55px); }.agent { min-width:0; width:22%; }.cat-wrap { right:-44px; top:-225px; width:260px; } textarea { width:calc(100% - 120px); }.sparkle{ left:calc(50% - 150px); }.finance-page { width:calc(100% - 56px); }.finance-title { font-size:42px; }.finance-subtitle { font-size:21px; }.finance-cards { margin-top:-92px; }.finance-pager { margin-top:18px; } }
+    /* 正常全屏布局：页面锁住视口，内容按高度压缩；不使用整页缩放画布。 */
+    .content { height:100%; padding-top:0; padding-bottom:70px; display:flex; flex-direction:column; justify-content:center; }
+    .sushi-detail-page,.luheng-detail-page,.linmo-detail-page { height:100%; min-height:0; }
+    .sushi-detail-shell,.luheng-detail-shell,.linmo-detail-shell { height:100%; min-height:0; grid-template-columns:clamp(560px,69dvh,720px) minmax(0,1fr); }
+    /* 场景图左边与侧栏直接相接，不再因图片在栏内居中而留下白缝。 */
+    .sushi-visual,.luheng-visual,.linmo-visual { height:100%; min-height:0; background-size:auto 100%; background-position:left top; background-repeat:no-repeat; }
+    .sushi-copy,.luheng-copy,.linmo-copy { width:min(690px,calc(100% - 68px)); padding:clamp(26px,4.2vh,52px) 0 clamp(22px,3.5vh,42px); }
+    .sushi-name,.luheng-name,.linmo-name { font-size:clamp(50px,6vh,68px); }
+    .sushi-role,.luheng-role,.linmo-role { margin:clamp(8px,1.4vh,13px) 0 clamp(14px,2.2vh,22px); font-size:clamp(22px,2.5vh,28px); }
+    .sushi-intro,.luheng-intro,.linmo-intro { margin-bottom:clamp(16px,3vh,30px); font-size:clamp(16px,1.9vh,20px); line-height:1.55; }
+    .sushi-section-title,.luheng-section-title,.linmo-section-title { margin:clamp(14px,2.2vh,22px) 0 clamp(6px,1vh,9px); font-size:clamp(20px,2.4vh,25px); }
+    .sushi-capability,.luheng-capability,.linmo-capability { min-height:clamp(58px,7.3vh,76px); padding:clamp(6px,1vh,11px) 0; gap:14px; }
+    .sushi-capability-icon,.luheng-capability-icon,.linmo-capability-icon,.sushi-result-icon,.luheng-result-icon,.linmo-result-icon { width:clamp(40px,4.8vh,48px); height:clamp(40px,4.8vh,48px); flex-basis:clamp(40px,4.8vh,48px); font-size:21px; }
+    .sushi-capability strong,.luheng-capability strong,.linmo-capability strong { font-size:clamp(16px,1.8vh,18px); }.sushi-capability small,.luheng-capability small,.linmo-capability small { margin-top:2px; font-size:clamp(12px,1.5vh,15px); }
+    .sushi-result,.luheng-result,.linmo-result { gap:14px; margin:clamp(7px,1.3vh,11px) 0 clamp(11px,2vh,19px); font-size:clamp(13px,1.65vh,16px); }
+    .sushi-composer,.luheng-composer,.linmo-composer { height:clamp(52px,6.2vh,64px); }.sushi-composer input,.luheng-composer input,.linmo-composer input { font-size:clamp(14px,1.7vh,17px); }
+    .sushi-send-mini,.luheng-send-mini,.linmo-send-mini { width:clamp(40px,4.8vh,48px); height:clamp(40px,4.8vh,48px); flex-basis:clamp(40px,4.8vh,48px); }
+    .sushi-consult,.luheng-consult,.linmo-consult { height:clamp(48px,5.8vh,58px); margin-top:clamp(11px,1.7vh,17px); font-size:clamp(16px,1.9vh,19px); }.sushi-note,.luheng-note,.linmo-note { margin-top:clamp(10px,1.7vh,17px); font-size:clamp(12px,1.4vh,14px); }
+    /* 宽屏不再把内容缩在中间：场景栏按素材完整比例放宽，右侧信息区同步增大。 */
+    @media (min-width:1600px) and (min-aspect-ratio:16/10) {
+      .finance-page { width:min(1780px,calc(100% - clamp(72px,8vw,176px))); padding-top:clamp(56px,7vh,96px); }
+      .finance-cards { margin-top:clamp(-148px,-10vh,-104px); }
+      .finance-team-image { width:min(100%,1640px,128dvh); }
+      .sushi-detail-shell,.luheng-detail-shell,.linmo-detail-shell { grid-template-columns:clamp(770px,42vw,980px) minmax(0,1fr); }
+      .sushi-copy,.luheng-copy,.linmo-copy { width:min(780px,calc(100% - 96px)); }
+      .sushi-name,.luheng-name,.linmo-name { font-size:clamp(56px,6.2vh,76px); }
+      .sushi-role,.luheng-role,.linmo-role { font-size:clamp(23px,2.6vh,30px); }
+      .sushi-intro,.luheng-intro,.linmo-intro { max-width:760px; }
+    }
+        [hidden] { display:none !important; }
     .expert-page { position:relative; z-index:1; height:100vh; min-height:660px; display:flex; flex-direction:column; }
     .expert-header { height:82px; flex-shrink:0; display:flex; align-items:center; gap:13px; padding:0 36px; border-bottom:1px solid #e6eafa; background:rgba(255,255,255,.65); }
     .expert-header .avatar { width:40px; height:40px; flex-basis:40px; font-size:25px; }
@@ -77,54 +171,168 @@
     .examples { display:grid; gap:10px; }.example { display:flex; justify-content:space-between; gap:16px; width:100%; text-align:left; padding:14px 17px; border:1px solid #e0e6fa; border-radius:12px; color:#405783; background:rgba(255,255,255,.78); cursor:pointer; font-size:14px; line-height:1.6; transition:.18s; }.example:hover { border-color:#a291fa; background:#f8f6ff; transform:translateX(3px); }.example span { color:#9a86ef; }
     .expert-note { font-size:12px; color:#8997b7; line-height:1.8; margin-top:20px; }
     .composer-wrap { flex-shrink:0; padding:16px 32px 22px; background:linear-gradient(0deg,#fafbff 60%,transparent); }.expert-composer { border:1.5px solid #bcaff7; border-radius:20px; padding:18px 20px 13px; background:#fff; box-shadow:0 8px 28px #5360ab0b; }.expert-composer textarea { height:66px; font-size:15px; }.composer-actions { display:flex; align-items:center; gap:12px; margin-top:8px; }.composer-actions .counter { margin-left:auto; font-size:12px; }.composer-actions .send { width:46px; height:40px; border-radius:11px; font-size:24px; }.composer-actions .circle-btn { width:36px; height:36px; font-size:23px; }.messages { display:grid; gap:14px; margin-top:24px; }.message { border-radius:14px; padding:14px 18px; font-size:14px; line-height:1.8; white-space:pre-wrap; overflow-wrap:anywhere; }.message.user { background:#edeaff; margin-left:70px; }.message.assistant { background:#f2f6fd; color:#60739a; margin-right:35px; }
-  </style>
+
+    .expert-composer textarea { width:100%; }
+    .finance-card[role="button"] { cursor:pointer; }
+
+.main{min-width:0}.content[hidden],.expert-page[hidden]{display:none!important}.expert-page{height:100dvh;min-height:0}.tang-hitbox{position:absolute;z-index:2;left:78%;bottom:16%;width:20%;height:59%;border:0;background:transparent;cursor:pointer;border-radius:24px}.tang-hitbox:focus-visible{outline:3px solid #795aff}.finance-cards{width:min(100%,1300px);margin-left:auto;margin-right:auto}.finance-team-image{width:100%}.agent .avatar{overflow:hidden}.agent .avatar img{width:100%;height:100%;object-fit:cover}.sushi-detail-page,.luheng-detail-page,.linmo-detail-page{overflow:auto}@media(min-width:1600px) and (min-aspect-ratio:16/10){.finance-cards{width:min(100%,1640px,128dvh)}}
+.sidebar .sidebar-action:not(.is-active){color:#42578e!important}.sidebar .sidebar-action.is-active{color:#fff}
+/* 所有入口和详情页共用头像尺寸约束，避免原图超出圆形容器。 */
+.avatar{position:relative;isolation:isolate}.avatar>img{display:block;width:100%;height:100%;min-width:0;min-height:0;max-width:100%;max-height:100%;object-fit:cover;object-position:center;border-radius:50%;grid-area:1/1}
+
+.tangnuo-detail-page{overflow:auto}
+@media(max-width:1000px){.tangnuo-detail-shell{grid-template-columns:1fr}.tangnuo-visual{min-height:420px}.tangnuo-copy{width:calc(100% - 48px);padding:32px 0}.tangnuo-name{font-size:54px}}
+</style>
 </head>
 <body>
   <main class="app">
     <aside class="sidebar">
-      <div class="brand"><svg class="brand-mark" viewBox="0 0 29 31" aria-hidden="true"><defs><linearGradient id="logoBlue" x1="2" y1="1" x2="25" y2="29" gradientUnits="userSpaceOnUse"><stop stop-color="#9cceff"/><stop offset=".52" stop-color="#528ff9"/><stop offset="1" stop-color="#316bea"/></linearGradient></defs><path d="M9.4 9.8 14.3 5l4.7 4.8-4.7 4.7zM5.2 15.1l4.8-4.7 4.8 4.7-4.8 4.8zM14 20l4.8-4.8 4.8 4.8-4.8 4.8zM9.4 25.2l4.9-4.8 4.7 4.8-4.7 4.8z" fill="url(#logoBlue)"/></svg>LedgerMate</div>
-      <button class="new-task" id="newTask"><span>＋</span>新建任务</button>
-      <nav class="nav"><button class="nav-item" type="button"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 20v-1a7 7 0 0 0-14 0v1"/><circle cx="12" cy="7" r="4"/><path d="M17 20h3v-1a6 6 0 0 0-3-5.2"/></svg>财务智囊</button></nav>
+      <div class="brand"><img class="brand-mark" src="swarmagent-coin-mark.png" alt="" aria-hidden="true" /><span class="brand-copy">SwarmAgent<span class="brand-subtitle">财务智囊</span></span></div>
+      <button class="new-task sidebar-action is-active" id="newTask" type="button" aria-current="page"><span>＋</span>新建任务</button>
+      <nav class="nav"><button class="nav-item sidebar-action" id="financeNav" type="button"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 20v-1a7 7 0 0 0-14 0v1"/><circle cx="12" cy="7" r="4"/><path d="M17 20h3v-1a6 6 0 0 0-3-5.2"/></svg>财务智囊</button></nav>
       <div class="section-title">最近</div><div class="empty"><svg viewBox="0 0 36 36"><path d="M9 8.5h18a4 4 0 0 1 4 4v11a4 4 0 0 1-4 4H17l-6 4v-4H9a4 4 0 0 1-4-4v-11a4 4 0 0 1 4-4Z"/></svg>暂无对话</div>
       <div class="settings"><button class="nav-item" type="button"><svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.1 2.1-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56v.1h-3v-.1a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06-2.1-2.1.06-.06A1.7 1.7 0 0 0 7.06 15a1.7 1.7 0 0 0-1.56-1.03h-.1v-3h.1A1.7 1.7 0 0 0 7.06 9.94a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.1-2.1.06.06a1.7 1.7 0 0 0 1.88.34 1.7 1.7 0 0 0 1.03-1.56v-.1h3v.1a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.1 2.1-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.56 1.03h.1v3h-.1A1.7 1.7 0 0 0 19.4 15Z"/></svg>设置与账号</button></div>
     </aside>
-    <section class="main"><div class="glow one"></div><div class="glow two"></div><div class="glow three"></div><div class="glow four"></div>
+    <section class="main">
       <div class="content"><div class="hero"><svg class="sparkle" viewBox="0 0 34 34" aria-hidden="true"><defs><linearGradient id="sparkleGradient" x1="4" y1="3" x2="30" y2="31" gradientUnits="userSpaceOnUse"><stop stop-color="#36c2ff"/><stop offset=".54" stop-color="#5a78ff"/><stop offset="1" stop-color="#7a3df5"/></linearGradient></defs><path d="M17 0c1.8 11.4 5.6 15.2 17 17-11.4 1.8-15.2 5.6-17 17-1.8-11.4-5.6-15.2-17-17 11.4-1.8 15.2-5.6 17-17Z" fill="url(#sparkleGradient)"/></svg><h1>今天，有什么财务工作交给我？</h1><p class="subtitle">说说你的需求，让专业伙伴帮你一起完成。</p></div>
-        <div class="workbox"><div class="cat-wrap" aria-hidden="true"><img class="cat-silhouette-shadow" src="ledgermate-cat-v2.png" alt="" /><img class="cat" src="ledgermate-cat-v2.png" alt="" /></div><textarea id="prompt" maxlength="2000" placeholder="请描述你的需求，或上传相关文件…"></textarea><div class="controls"><button class="circle-btn" id="attach" aria-label="添加文件"><svg viewBox="0 0 28 28"><path d="M14 5v18M5 14h18"/></svg></button><div class="right-controls"><span class="counter"><b id="count">0</b> / 2000</span><button class="circle-btn" id="voice" aria-label="语音输入"><svg viewBox="0 0 28 28"><rect x="10" y="4" width="8" height="13" rx="4"/><path d="M6.5 14.5a7.5 7.5 0 0 0 15 0M14 22v3M10 25h8"/></svg></button><button class="send" id="send" aria-label="发送任务"><svg viewBox="0 0 30 30"><path d="M15 25V5M7 13l8-8 8 8"/></svg></button></div></div></div>
-        <div class="agent-area" aria-label="可选择的财务专家"><button class="agent active" type="button"><span class="avatar">👨🏻‍💼</span><span class="agent-copy"><span class="agent-name">周全</span><br><span class="agent-role">发票识别专家</span></span></button><button class="agent" type="button"><span class="avatar">👩🏻‍💼</span><span class="agent-copy"><span class="agent-name">苏识</span><br><span class="agent-role">财税顾问</span></span></button><button class="agent" type="button"><span class="avatar">👩🏻‍💻</span><span class="agent-copy"><span class="agent-name">林墨</span><br><span class="agent-role">财讯观察员</span></span></button><button class="agent" type="button"><span class="avatar">👨🏻‍💼</span><span class="agent-copy"><span class="agent-name">唐诺</span><br><span class="agent-role">报销审核专家</span></span></button></div>
+        <div class="workbox"><div class="cat-wrap" aria-hidden="true"><img class="cat-silhouette-shadow" src="ledgermate-cat-v2.png" alt="" /><img class="cat" src="ledgermate-cat-v2.png" alt="" /></div><textarea id="prompt" maxlength="2000" aria-label="任务描述" placeholder="请描述你的需求，或上传相关文件…"></textarea><div class="controls"><button class="circle-btn" id="attach" aria-label="添加文件"><svg viewBox="0 0 28 28"><path d="M14 5v18M5 14h18"/></svg></button><div class="right-controls"><span class="counter"><b id="count">0</b> / 2000</span><button class="circle-btn" id="voice" aria-label="语音输入"><svg viewBox="0 0 28 28"><rect x="10" y="4" width="8" height="13" rx="4"/><path d="M6.5 14.5a7.5 7.5 0 0 0 15 0M14 22v3M10 25h8"/></svg></button><button class="send" id="send" aria-label="发送任务"><svg viewBox="0 0 30 30"><path d="M15 25V5M7 13l8-8 8 8"/></svg></button></div></div></div>
+        <div class="agent-area" aria-label="可选择的财务专家"><button class="agent active" type="button"><span class="avatar">👨🏻‍💼</span><span class="agent-copy"><span class="agent-name">陆衡</span><br><span class="agent-role">票据整理专家</span></span></button><button class="agent" type="button"><span class="avatar">👩🏻‍💼</span><span class="agent-copy"><span class="agent-name">苏识</span><br><span class="agent-role">财税知识问答顾问</span></span></button><button class="agent" type="button"><span class="avatar">👩🏻‍💻</span><span class="agent-copy"><span class="agent-name">林墨</span><br><span class="agent-role">财务 AI 资讯编辑</span></span></button><button class="agent" type="button"><span class="avatar">👨🏻‍💼</span><span class="agent-copy"><span class="agent-name">唐诺</span><br><span class="agent-role">PPT 制作专家</span></span></button></div>
       </div>
+      <section class="finance-page" id="financePage" aria-label="财务智囊专家页">
+        <h1 class="finance-title">财务智囊</h1><p class="finance-subtitle">和合拍的伙伴，一起把事情做好。</p>
+        <div class="finance-cards" aria-label="财务专家列表">
+          <img class="finance-team-image" src="financial-advisor-card-group-matte-v2.png" alt="财务智囊团：苏识、陆衡、林墨和唐诺；唐诺为 PPT 制作专家" />
+          <button class="sushi-hitbox" id="openSushi" type="button" aria-label="查看苏识详情"></button>
+          <button class="luheng-hitbox" id="openLuheng" type="button" aria-label="查看陆衡详情"></button>
+          <button class="linmo-hitbox" id="openLinmo" type="button" aria-label="查看林墨详情"></button>
+          <button class="tangnuo-hitbox" id="openTangnuo" type="button" aria-label="查看唐诺详情"></button>
+        </div>
+      </section>
+      <section class="sushi-detail-page" id="sushiDetail" aria-label="苏识详情页">
+        <button class="detail-page-back" id="sceneBack" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg><span>返回财务智囊</span></button>
+        <div class="sushi-detail-shell">
+          <div class="sushi-visual" role="img" aria-label="苏识坐在财税工作台前，面前有电脑和财税书籍"></div>
+          <div class="sushi-copy">
+            <h1 class="sushi-name">苏识</h1><p class="sushi-role">财税知识问答顾问</p>
+            <p class="sushi-intro">我是苏识。告诉我你的具体情况，我帮你找依据、讲清适用条件和需要进一步确认的地方。</p>
+            <h2 class="sushi-section-title">我能帮你</h2>
+            <div class="sushi-capability"><span class="sushi-capability-icon">▤</span><span><strong>识别问题与必要追问</strong><small>区分政策、概念、会计处理和公司制度问题；只追问会影响结论的信息。</small></span></div>
+            <div class="sushi-capability"><span class="sushi-capability-icon">⌕</span><span><strong>检索适用原文</strong><small>按主题、期间、地区和材料有效状态筛选后，再查找对应条款。</small></span></div>
+            <div class="sushi-capability"><span class="sushi-capability-icon">♧</span><span><strong>引用式解释与冲突提示</strong><small>把结论、原文依据和仍缺信息分开说明；发现冲突时明确转人工确认。</small></span></div>
+            <h2 class="sushi-section-title">你会收到</h2>
+            <div class="sushi-result"><span class="sushi-result-icon">▤</span><span>适用前提、条件性结论、原文依据、解释、下一步和资料更新截止时间。</span></div>
+            <div class="sushi-composer"><input id="sushiPrompt" type="text" maxlength="500" aria-label="咨询苏识" placeholder="描述问题；必要时补充地区、期间、主体和业务类型" /><button class="sushi-send-mini" id="sushiSend" type="button" aria-label="发送咨询"><svg viewBox="0 0 30 30"><path d="m5 14 19-9-7 20-4-8-8-3Z"/><path d="m13 17 5-5"/></svg></button></div>
+            <button class="sushi-consult" id="sushiConsult" type="button">咨询苏识　↗</button>
+            <p class="sushi-note">ⓘ 不承诺政策永远最新；资料不足、有效期或地区解释冲突时，不下确定结论，转财务确认。</p>
+          </div>
+        </div>
+      </section>
+      <section class="luheng-detail-page" id="luhengDetail" aria-label="陆衡详情页">
+        <button class="detail-page-back" id="luhengSceneBack" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg><span>返回财务智囊</span></button>
+        <div class="luheng-detail-shell">
+          <div class="luheng-visual" role="img" aria-label="陆衡坐在工位前进行票据整理"></div>
+          <div class="luheng-copy">
+            <h1 class="luheng-name">陆衡</h1><p class="luheng-role">票据整理专家</p>
+            <p class="luheng-intro">我是陆衡。把待整理的票据和公司主体交给我，我会提取关键字段、标出待核项和查重范围，并在人工确认后导出清单。</p>
+            <h2 class="luheng-section-title">我能帮你</h2>
+            <div class="luheng-capability"><span class="luheng-capability-icon">▤</span><span><strong>上传并提取票据字段</strong><small>把零散票据整理为可复核的结构化记录，字段与原件可逐项对照。</small></span></div>
+            <div class="luheng-capability"><span class="luheng-capability-icon">⌕</span><span><strong>核对主体、重复和缺失项</strong><small>标出问题位置和修正动作；查重范围与查验状态分别展示。</small></span></div>
+            <div class="luheng-capability"><span class="luheng-capability-icon">⇩</span><span><strong>人工复核后导出交接</strong><small>人工复核是必经节点，按确认版本导出清单。</small></span></div>
+            <h2 class="luheng-section-title">你会收到</h2>
+            <div class="luheng-result"><span class="luheng-result-icon">▤</span><span>确认后的结构化票据清单、原件定位、重复候选、待核项和检查范围。</span></div>
+            <h2 class="luheng-section-title">输入</h2>
+            <div class="luheng-result"><span class="luheng-result-icon">⇧</span><span>PDF、JPG、PNG 票据；公司主体；可选历史台账。</span></div>
+            <div class="luheng-composer"><input id="luhengPrompt" type="text" maxlength="500" aria-label="交给陆衡的票据整理需求" placeholder="上传票据，或说明整理范围、公司主体和输出要求" /><button class="luheng-send-mini" id="luhengSend" type="button" aria-label="发送票据整理需求"><svg viewBox="0 0 30 30"><path d="m5 14 19-9-7 20-4-8-8-3Z"/><path d="m13 17 5-5"/></svg></button></div>
+            <button class="luheng-consult" id="luhengConsult" type="button">交给陆衡　↗</button>
+            <p class="luheng-note">ⓘ OCR 结果需人工确认；不判断业务真实性，不自动记账，不将发票存在视为已报销；未覆盖规则转人工处理。</p>
+          </div>
+        </div>
+      </section>
+      <section class="linmo-detail-page" id="linmoDetail" aria-label="林墨详情页">
+        <button class="detail-page-back" id="linmoSceneBack" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg><span>返回财务智囊</span></button>
+        <div class="linmo-detail-shell">
+          <div class="linmo-visual" role="img" aria-label="林墨身穿浅蓝色西装，手持平板和笔，坐在透明椅上"></div>
+          <div class="linmo-copy">
+            <h1 class="linmo-name">林墨</h1><p class="linmo-role">财务 AI 资讯编辑</p>
+            <p class="linmo-intro">我是林墨，帮你筛出值得关注的财务与 AI 资讯，每条都能回到原文。</p>
+            <h2 class="linmo-section-title">我能帮你</h2>
+            <div class="linmo-capability"><span class="linmo-capability-icon">⌕</span><span><strong>采集可信来源</strong><small>从编辑确认的来源获取内容，保留原始链接和采集时间；抓不到正文不凭标题补写。</small></span></div>
+            <div class="linmo-capability"><span class="linmo-capability-icon">▤</span><span><strong>筛选并归并事件</strong><small>判断与财务工作的关联，合并同一事件的转载，优先保留原始来源。</small></span></div>
+            <div class="linmo-capability"><span class="linmo-capability-icon">✓</span><span><strong>摘要解释并编辑成刊</strong><small>说明发生了什么、与财务的关系和建议阅读动作；编辑确认后才发布。</small></span></div>
+            <h2 class="linmo-section-title">你会收到</h2>
+            <div class="linmo-result"><span class="linmo-result-icon">▤</span><span>已发布的一期早报：带期号、日期、来源、原文链接和更正记录；政策变化仅形成待审核更新线索。</span></div>
+            <h2 class="linmo-section-title">输入</h2>
+            <div class="linmo-result"><span class="linmo-result-icon">◌</span><span>阅读站内早报；编辑使用限定来源的原文资料。</span></div>
+            <div class="linmo-composer"><input id="linmoPrompt" type="text" maxlength="500" aria-label="告诉林墨关注方向" placeholder="告诉我你想关注的工具、政策或行业资讯" /><button class="linmo-send-mini" id="linmoSend" type="button" aria-label="发送资讯需求"><svg viewBox="0 0 30 30"><path d="m5 14 19-9-7 20-4-8-8-3Z"/><path d="m13 17 5-5"/></svg></button></div>
+            <button class="linmo-consult" id="linmoConsult" type="button">查看早报　↗</button>
+            <p class="linmo-note">ⓘ 不依据标题臆测正文，不把厂商宣传当实测，不把发布日当生效日；草稿未经编辑确认不发布。</p>
+          </div>
+        </div>
+      </section>
+      <section class="tangnuo-detail-page" id="tangnuoDetail" aria-label="唐诺详情页">
+        <button class="detail-page-back" id="tangnuoSceneBack" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg><span>返回财务智囊</span></button>
+        <div class="tangnuo-detail-shell">
+          <div class="tangnuo-visual" role="img" aria-label="唐诺坐在电脑前，准备制作演示稿"></div>
+          <div class="tangnuo-copy">
+            <h1 class="tangnuo-name">唐诺</h1><p class="tangnuo-role">PPT 制作专家</p>
+            <p class="tangnuo-intro">我是唐诺。把演示主题、参考资料和使用场景交给我，我会帮你梳理大纲、匹配版式并编排页面；你可以在线确认和调整，完成后导出演示稿。</p>
+            <h2 class="tangnuo-section-title">我能帮你</h2>
+            <div class="tangnuo-capability"><span class="tangnuo-capability-icon">☷</span><span><strong>需求梳理与大纲规划</strong><small>根据汇报对象、用途和页数，安排每一页重点，标出待补信息。</small></span></div>
+            <div class="tangnuo-capability"><span class="tangnuo-capability-icon">▣</span><span><strong>模板匹配与页面编排</strong><small>选择合适版式，统一标题、正文和配图，让信息层次更清楚。</small></span></div>
+            <div class="tangnuo-capability"><span class="tangnuo-capability-icon">⇩</span><span><strong>在线修改与确认导出</strong><small>支持改文字、调位置、换图片；预览确认后导出 PPTX 或 HTML。</small></span></div>
+            <h2 class="tangnuo-section-title">你会收到</h2>
+            <div class="tangnuo-result"><span class="tangnuo-result-icon">▤</span><span>一份结构清晰、文字可编辑的演示稿，以及可继续调整的大纲和演讲备注。</span></div>
+            <div class="tangnuo-composer"><input id="tangnuoPrompt" type="text" maxlength="500" aria-label="交给唐诺的演示稿需求" placeholder="告诉我想做什么 PPT，或提供参考内容；可补充用途、页数和风格要求" /><button class="tangnuo-send-mini" id="tangnuoSend" type="button" aria-label="发送演示稿需求"><svg viewBox="0 0 30 30"><path d="m5 14 19-9-7 20-4-8-8-3Z"/><path d="m13 17 5-5"/></svg></button></div>
+            <button class="tangnuo-consult" id="tangnuoConsult" type="button">交给唐诺　↗</button>
+            <p class="tangnuo-note">ⓘ 生成后可继续编辑和预览确认；导出前请核对数据、引用、图片版权和对外表述。</p>
+          </div>
+        </div>
+      </section>
     </section>
   </main><div class="toast" id="toast"></div>
   <script>
     const prompt = document.querySelector('#prompt'), count = document.querySelector('#count'), toast = document.querySelector('#toast');
+    const app = document.querySelector('.app'), newTask = document.querySelector('#newTask'), financeNav = document.querySelector('#financeNav'), settingsNav = document.querySelector('.settings .nav-item');
+    settingsNav.classList.add('sidebar-action');
+    const sidebarActions = document.querySelectorAll('.sidebar-action');
+    const setSidebarActive = active => sidebarActions.forEach(action => { const selected = action === active; action.classList.toggle('is-active', selected); if (selected) action.setAttribute('aria-current', 'page'); else action.removeAttribute('aria-current'); });
+    const showHome = () => app.classList.remove('finance-mode','sushi-detail-mode','luheng-detail-mode','linmo-detail-mode','tangnuo-detail-mode');
+    const showFinance = () => { app.classList.remove('sushi-detail-mode','luheng-detail-mode','linmo-detail-mode','tangnuo-detail-mode'); app.classList.add('finance-mode'); };
+    // 切页后不把焦点强行放到返回按钮，保持它的默认视觉状态。
+    const showSushiDetail = () => { app.classList.remove('finance-mode','luheng-detail-mode','linmo-detail-mode','tangnuo-detail-mode'); app.classList.add('sushi-detail-mode'); setSidebarActive(financeNav); window.scrollTo(0,0); };
+    const showLuhengDetail = () => { app.classList.remove('finance-mode','sushi-detail-mode','linmo-detail-mode','tangnuo-detail-mode'); app.classList.add('luheng-detail-mode'); setSidebarActive(financeNav); window.scrollTo(0,0); };
+    const showLinmoDetail = () => { app.classList.remove('finance-mode','sushi-detail-mode','luheng-detail-mode','tangnuo-detail-mode'); app.classList.add('linmo-detail-mode'); setSidebarActive(financeNav); window.scrollTo(0,0); };
+    const showTangnuoDetail = () => { app.classList.remove('finance-mode','sushi-detail-mode','luheng-detail-mode','linmo-detail-mode'); app.classList.add('tangnuo-detail-mode'); setSidebarActive(financeNav); window.scrollTo(0,0); };
     const notify = text => { toast.textContent = text; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 1900); };
-    prompt.addEventListener('input', () => count.textContent = prompt.value.length);
-    document.querySelector('#newTask').addEventListener('click', () => { location.hash=''; prompt.value=''; count.textContent='0'; });
-    document.querySelector('#attach').addEventListener('click', () => notify('文件上传入口已准备好'));
-    document.querySelector('#voice').addEventListener('click', () => notify('语音输入功能待接入'));
-    document.querySelector('#send').addEventListener('click', () => { if (!prompt.value.trim()) { prompt.focus(); notify('先说说你想处理什么财务工作吧'); return; } notify('任务已发送给财务智囊'); });
-  </script>
-  <script>
+prompt.addEventListener('input',()=>count.textContent=prompt.value.length);
+settingsNav.onclick=()=>notify('设置与账号即将开放');
+document.querySelector('#attach').onclick=()=>notify('请在专家对话页选择附件');
+document.querySelector('#voice').onclick=()=>notify('语音输入尚未接入');
+</script>
+<script>
     const experts = {
-      zhouquan:{name:'周全',role:'发票识别专家',avatar:'👨🏻‍💼',tagline:'把繁琐的票据整理，交给细致的我。',intro:'你好，我是周全。你可以把发票图片或 PDF 交给我，我会帮你提取抬头、金额、税额、日期等信息，标出缺失字段和疑似重复的票据，整理成便于复核的清单。确认信息后，再导出 Excel，让每张票据都有据可查。',examples:['整理这批发票，提取关键信息并汇总成 Excel 清单','检查这些发票的抬头、金额和税额，标出需要复核的地方','找出这批票据中疑似重复的发票，并列出判断依据'],placeholder:'描述需要整理的发票，或添加发票图片、PDF…',note:'识别结果需要复核；OCR 识别不等于发票真伪查验，也不代表报销已通过。'},
-      sushi:{name:'苏识',role:'财税顾问',avatar:'👩🏻‍💼',tagline:'把财税问题讲清楚，也把依据交给你。',intro:'你好，我是苏识。遇到拿不准的财税问题，可以告诉我业务背景、所属地区和发生时间。我会结合可用的政策原文、会计准则和公司制度，梳理适用条件、处理建议与参考出处；信息不足时，我会先向你确认，让每一步判断都有依据。',examples:['这笔费用应该如何处理？请先告诉我需要补充哪些业务信息','根据我提供的公司制度，解释这项费用的报销要求并标注出处','帮我解读这份税收政策，列出适用条件、生效时间和需要关注的事项'],placeholder:'描述你的财税问题、业务背景和发生时间…',note:'解答供业务参考，实际处理由财务确认；无法确认政策时效或适用条件时，会明确说明。'},
-      linmo:{name:'林墨',role:'财讯观察员',avatar:'👩🏻‍💻',tagline:'从纷繁资讯里，找到与你工作有关的变化。',intro:'你好，我是林墨。我帮你整理财税政策与行业动态，从可信来源提取要点，区分发布时间和生效时间，并附上原文出处。你可以指定关注主题，或提供文章与链接，我会整理成便于阅读和复核的财讯简报。',examples:['将我提供的这些财税资讯整理成一份简报，并保留原文链接','梳理这份政策更新的核心变化，区分发布日期和生效日期','对这些新闻去重并按主题分类，标出需要财务进一步关注的内容'],placeholder:'告诉我关注的财讯主题，或提供文章、链接…',note:'资讯与解读会注明来源；简报需人工审核后发布，不自动更新公司的财税知识与审核规则。'},
-      tangnuo:{name:'唐诺',role:'报销审核专家',avatar:'👨🏻‍💼',tagline:'先把问题找出来，让报销复核更省心。',intro:'你好，我是唐诺。把报销单、发票和适用的公司制度交给我，我会逐项检查材料是否齐全、金额是否一致、费用是否符合规则，并说明异常对应的依据。遇到缺少材料或规则不明确的情况，我会列出待补充事项，帮助财务更快完成复核。',examples:['根据公司报销制度，预审这份报销单并列出异常及依据','检查报销单与发票的金额是否一致，整理缺失材料清单','把这批报销的检查结果整理为预审报告，区分异常项与待确认项'],placeholder:'描述需要预审的报销事项，或添加报销材料、制度…',note:'预审结果不等于审批通过；不执行付款、记账，缺少规则或必要材料时会提示无法判断。'}
+      sushi:{name:'苏识',role:'财税问答顾问',image:'sushi-head.jpg',avatar:'👩🏻‍💼',tagline:'把财税问题讲清楚，也把依据交给你。',intro:'你好，我是苏识，你的财税问答顾问。遇到拿不准的财税问题，可以告诉我业务背景、所属地区和发生时间。我会结合可用的政策原文、会计准则和公司制度，梳理适用条件、处理建议与参考出处；信息不足时，我会先向你确认，让每一步判断都有依据。',examples:['这笔费用应该如何处理？请先告诉我需要补充哪些业务信息','根据我提供的公司制度，解释这项费用的报销要求并标注出处','帮我解读这份税收政策，列出适用条件、生效时间和需要关注的事项'],placeholder:'描述你的财税问题、业务背景和发生时间…',note:'解答供业务参考，实际处理由财务确认；无法确认政策时效或适用条件时，会明确说明。'},
+      luheng:{name:'陆衡',role:'票据整理专家',image:'luheng-head.jpg',avatar:'👨🏻‍💼',tagline:'把繁琐的票据整理，交给细致的我。',intro:'你好，我是陆衡，你的票据整理专家。你可以把发票图片或 PDF 交给我，我会帮你提取抬头、金额、税额、日期等信息，标出缺失字段和疑似重复的票据，整理成便于复核的清单。确认信息后，还可导出 Excel，让每张票据都有据可查。',examples:['整理这批发票，提取关键信息并汇总成 Excel 清单','检查这些发票的抬头、金额和税额，标出需要复核的地方','找出这批票据中疑似重复的发票，并列出判断依据'],placeholder:'描述需要整理的发票，或添加发票图片、PDF…',note:'识别结果需要复核；OCR 识别不等于发票真伪查验，也不代表报销已通过。'},
+      linmo:{name:'林墨',role:'财务 AI 资讯编辑',image:'linmo-head.png',avatar:'👩🏻‍💻',tagline:'从纷繁资讯里，找到与你工作有关的变化。',intro:'你好，我是林墨，你的财务 AI 资讯编辑。我会帮你整理财税政策与行业动态，从可信来源提取要点，区分发布时间和生效时间，并附上原文出处。你可以指定关注主题，或提供文章与链接，我会整理成便于阅读和复核的财讯简报。',examples:['将我提供的这些财税资讯整理成一份简报，并保留原文链接','梳理这份政策更新的核心变化，区分发布日期和生效日期','对这些新闻去重并按主题分类，标出需要财务进一步关注的内容'],placeholder:'告诉我关注的财讯主题，或提供文章、链接…',note:'资讯与解读会注明来源；简报需人工审核后发布，不自动更新公司的财税知识与审核规则。'},
+      chengshu:{name:'唐诺',role:'PPT 制作专家',image:'tangnuo-head.jpg',avatar:'👨🏻‍💼',tagline:'把零散想法，讲成一份清晰有重点的演示稿。',intro:'你好，我是唐诺，你的 PPT 制作专家。把汇报主题、已有大纲或参考材料交给我，我会先和你确认面向谁、讲什么、需要多少页，再梳理内容结构，整理逐页标题、重点和演讲备注，搭配合适的版式与配图建议。无论是月度总结、项目提案，还是内部培训，我都能帮你把零散信息组织成一份清晰的演示稿初稿；你也可以告诉我哪一页需要精简、补充或换个表达。涉及具体数据时，我会以你提供的材料为依据，缺失的信息会标记为待补充，让你更方便地复核和完善。',examples:['帮我制作一份 10 页的月度工作汇报，面向管理层，先和我确认大纲','把我提供的材料整理成项目提案 PPT，突出问题、方案、价值和下一步计划','将这份培训材料改写为逐页演示内容，并为每页补充演讲备注'],placeholder:'告诉我 PPT 的主题、受众、页数，或添加参考材料…',note:'请复核演示稿中的事实与数据；缺失信息会标记为待补充。'}
     };
-    function setAvatar(container,id){const img=document.createElement('img');img.src='assets/avatars/'+id+'.png';img.alt=experts[id].name;img.dataset.person=id;container.replaceChildren(img);}
-    document.querySelectorAll('.agent .avatar').forEach((el,i)=>setAvatar(el,Object.keys(experts)[i]));
+    function setAvatar(container,id){const img=document.createElement('img');img.src='assets/avatars/'+experts[id].image;img.alt=experts[id].name;img.dataset.person=id;container.replaceChildren(img);}
+    document.querySelectorAll('.agent .avatar').forEach((el,i)=>setAvatar(el,['luheng','sushi','linmo','chengshu'][i]));
     const main=document.querySelector('.main'),home=document.querySelector('.content');
     const expertPage=document.createElement('section'); expertPage.className='expert-page'; expertPage.hidden=true;
     expertPage.innerHTML=`<header class="expert-header"><div class="avatar" id="headerAvatar"></div><div><strong id="headerName"></strong><small id="headerRole"></small></div><button class="back-home" type="button">← 返回首页</button></header><div class="expert-scroll"><div class="expert-inner"><div class="intro-heading"><div class="avatar" id="introAvatar"></div><div><h2 id="introTitle"></h2><span>你的 AI 财务伙伴</span></div></div><p class="intro-text intro-tagline" id="tagline"></p><p class="intro-text" id="introduction"></p><p class="example-label">你可以这样开始</p><div class="examples"></div><p class="expert-note" id="expertNote"></p><div class="messages" aria-live="polite"></div></div></div><div class="composer-wrap"><form class="expert-composer"><textarea id="expertPrompt" maxlength="2000" aria-label="发送给数字员工的需求"></textarea><div class="composer-actions"><button class="circle-btn" id="expertAttach" type="button" aria-label="添加材料">＋</button><span class="counter"><b id="expertCount">0</b> / 2000</span><button class="send" type="submit" aria-label="发送需求">↑</button></div><input type="file" id="expertFiles" hidden multiple accept=".pdf,.png,.jpg,.jpeg,.xlsx,.xls,.csv,.docx,.txt"><p class="expert-note" id="fileNames" hidden></p></form></div>`;
     main.append(expertPage);
     const field=document.querySelector('#expertPrompt');let current=null;const drafts={};
-    document.querySelectorAll('.agent').forEach((button,i)=>button.addEventListener('click',()=>{location.hash='/expert/'+Object.keys(experts)[i];}));
+    document.querySelectorAll('.agent').forEach((button,i)=>button.addEventListener('click',()=>{location.hash='/expert/'+['luheng','sushi','linmo','chengshu'][i];}));
     document.querySelector('.back-home').addEventListener('click',()=>location.hash='');
+    let renderedRoute=null;
     function renderRoute(){
+      if(renderedRoute===location.hash)return;renderedRoute=location.hash;
       if(current) drafts[current]=field.value;
-      const id=location.hash.replace('#/expert/','');const e=experts[id];current=e?id:null;
+      const routeId=location.hash.replace('#/expert/','');const id=routeId==='tangnuo'?'chengshu':routeId;const e=experts[id];current=e?id:null;
+      if(e) { showHome(); setSidebarActive(financeNav); } else if(location.hash==='#/finance') { showFinance(); setSidebarActive(financeNav); } else { showHome(); setSidebarActive(newTask); }
       home.hidden=!!e;expertPage.hidden=!e;document.title=e?`${e.name} · ${e.role} | LedgerMate`:'LedgerMate · 财务智囊';
-      if(!e)return;
+      if(!e){const scene=location.hash.replace('#/scene/','');if(scene==='sushi')showSushiDetail();if(scene==='luheng')showLuhengDetail();if(scene==='linmo')showLinmoDetail();if(scene==='tangnuo')showTangnuoDetail();return;}
       for(const [selector,value] of Object.entries({'#headerAvatar':e.avatar,'#introAvatar':e.avatar,'#headerName':e.name,'#headerRole':e.role,'#introTitle':e.role+' · '+e.name,'#tagline':e.tagline,'#introduction':e.intro,'#expertNote':e.note}))document.querySelector(selector).textContent=value;
       setAvatar(document.querySelector('#headerAvatar'),id);setAvatar(document.querySelector('#introAvatar'),id);
       field.placeholder=e.placeholder;field.value=drafts[id]||'';document.querySelector('#expertCount').textContent=field.value.length;
@@ -138,6 +346,44 @@
     document.querySelector('#expertAttach').addEventListener('click',()=>document.querySelector('#expertFiles').click());
     document.querySelector('#expertFiles').addEventListener('change',event=>{const label=document.querySelector('#fileNames');label.textContent=Array.from(event.target.files).map(f=>f.name).join('、')+'（仅本地选择，尚未上传）';label.hidden=!event.target.files.length;});
     document.querySelector('.expert-composer').addEventListener('submit',event=>{event.preventDefault();if(!field.value.trim()){field.focus();notify('先说说你需要处理什么吧');return;}const messages=document.querySelector('.messages');for(const [cls,text] of [['user',field.value.trim()],['assistant',`这里将由${experts[current].name}处理你的需求。当前为交互演示，尚未接入 AI 服务，材料未上传，也未执行实际分析。`]]){const p=document.createElement('div');p.className='message '+cls;p.textContent=text;messages.append(p);}field.value='';field.dispatchEvent(new Event('input'));const scroll=document.querySelector('.expert-scroll');scroll.scrollTop=scroll.scrollHeight;});
-  </script>
+
+    newTask.addEventListener('click',()=>{renderedRoute=null;location.hash='';renderRoute();prompt.value='';count.textContent='0';});
+    financeNav.addEventListener('click',()=>{location.hash='/finance';renderRoute();});
+    document.querySelectorAll('.finance-card').forEach((card,i)=>{card.tabIndex=0;card.setAttribute('role','button');const open=()=>{location.hash='/expert/'+['luheng','sushi','linmo','chengshu'][i];};card.addEventListener('click',open);card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();open();}});});
+
+const ids=['luheng','sushi','linmo','chengshu'];
+function toExpert(id,text='',submit=false){id=id==='tangnuo'?'chengshu':id;drafts[id]=text;renderedRoute=null;location.hash='/expert/'+id;renderRoute();if(submit&&text.trim())document.querySelector('.expert-composer').requestSubmit();}
+document.querySelector('#send').onclick=()=>{if(!prompt.value.trim()){prompt.focus();return;}const selected=[...document.querySelectorAll('.agent')].findIndex(x=>x.classList.contains('active'));toExpert(ids[Math.max(0,selected)],prompt.value.trim(),true);};
+document.querySelectorAll('.agent').forEach((b,i)=>b.addEventListener('click',()=>{document.querySelectorAll('.agent').forEach(x=>x.classList.remove('active'));b.classList.add('active')}));
+for(const [id,button,back]of [['sushi','openSushi','sceneBack'],['luheng','openLuheng','luhengSceneBack'],['linmo','openLinmo','linmoSceneBack'],['tangnuo','openTangnuo','tangnuoSceneBack']]){
+ document.getElementById(button).onclick=()=>{location.hash='/scene/'+id;renderRoute()};
+ document.getElementById(back).onclick=()=>{location.hash='/finance';renderRoute()};
+ document.getElementById(id+'Send').onclick=()=>toExpert(id,document.getElementById(id+'Prompt').value,true);
+ document.getElementById(id+'Consult').onclick=()=>toExpert(id,document.getElementById(id+'Prompt').value,true);
+ document.getElementById(id+'Prompt').onkeydown=e=>{if(e.key==='Enter')toExpert(id,e.target.value,true)};
+}
+
+
+</script>
+<script src="assets/vendor/pptxgen.bundle.js"></script>
+<script src="assets/user-templates/smartblue-assets.js"></script>
+<script src="assets/user-templates/smartblue-pages.js"></script>
+<script src="assets/user-templates/businessplan-assets.js"></script>
+<script src="assets/user-templates/businessplan-pages.js"></script>
+<script src="assets/user-templates/monthly-assets.js"></script>
+<script src="assets/user-templates/monthly-pages.js"></script>
+<script src="assets/user-templates/promotion-assets.js"></script>
+<script src="assets/user-templates/promotion-pages.js"></script>
+<script src="assets/user-templates/midyear-assets.js"></script>
+<script src="assets/user-templates/midyear-pages.js"></script>
+<script src="assets/user-templates/workreview-assets.js"></script>
+<script src="assets/user-templates/workreview-pages.js"></script>
+<!-- Legacy artwork remains loadable for locally saved drafts; it is no longer listed as a template. -->
+<script src="assets/user-templates/watercolor-assets.js"></script>
+<script src="assets/user-templates/watercolor-pages.js"></script>
+<script src="assets/user-templates/summary-assets.js"></script>
+<script src="assets/user-templates/summary-pages.js"></script>
+<script src="assets/ppt-imported-templates.js"></script>
+<script src="assets/ppt-studio.js"></script>
 </body>
 </html>
