@@ -323,3 +323,59 @@
 #pptStudio .st-dialog:has(.st-template-grid){width:min(760px,92vw)}
 #pptStudio .st-dialog:has(.st-template-grid) .st-dialog-body{max-height:min(70vh,640px);overflow-y:auto}
 @media(max-width:620px){#pptStudio .st-brief-template-grid{grid-template-columns:1fr}#pptStudio .st-brief-template-thumb{flex-basis:88px;width:88px}}
+
+/* Reference-matched light dotted editor. Slide artwork and playback stay independent. */
+#pptStudio .st-tool:has(.st-editor){background:#f3f3f7;color:#35405a;color-scheme:light}
+#pptStudio .st-editor{
+  background-color:#f3f3f7;
+  background-image:radial-gradient(circle,#d9d9dc 1px,transparent 1.15px);
+  background-size:14px 14px;background-position:7px 7px;
+  color:#35405a;scrollbar-color:#c8cbd6 #f3f3f7;
+}
+#pptStudio .st-editor .st-main{background:transparent}
+#pptStudio .st-editor .st-editor-top{background:#fafafd;border-color:#e0e1e9}
+#pptStudio .st-editor .st-thumbs,
+#pptStudio .st-editor .st-thumbs>footer{background:#f9f9fc;border-color:#dfe1e9}
+#pptStudio .st-editor .st-properties{background:#fafafd;border-color:#dddfe8;box-shadow:0 2px 10px #34345105}
+#pptStudio .st-editor .st-properties>header{border-color:#e1e2e9}
+#pptStudio .st-editor .st-properties section{background:#fff;border-color:#e1e3ec}
+#pptStudio .st-editor button{background:#fff;border-color:#dfe1ea;color:#505b73;box-shadow:0 1px 2px #242f4904}
+#pptStudio .st-editor button:hover:not(:disabled){background:#f0edff;border-color:#c6b9fb;color:#6c4ed0}
+#pptStudio .st-editor button.chosen{background:#eee9ff;color:#684acb;border-color:#d5c8ff}
+#pptStudio .st-editor button.blue,
+#pptStudio .st-editor .st-page-assistant-row button{background:#637cff;color:#fff;border-color:transparent}
+#pptStudio .st-editor button.blue:hover,
+#pptStudio .st-editor .st-page-assistant-row button:hover{background:#5369e9;color:#fff}
+#pptStudio .st-editor button:disabled{opacity:.4}
+#pptStudio .st-editor .st-mode{background:#e9eaf1;border-color:#e1e2eb;box-shadow:none}
+#pptStudio .st-editor input,
+#pptStudio .st-editor select,
+#pptStudio .st-editor textarea,
+#pptStudio .st-editor .st-properties #stCode{background:#fff;color:#35405a;border-color:#d9dde8;color-scheme:light}
+#pptStudio .st-editor input::placeholder,
+#pptStudio .st-editor textarea::placeholder{color:#9299ac}
+#pptStudio .st-editor .st-properties h4{color:#35405a}
+#pptStudio .st-editor .st-properties label,
+#pptStudio .st-editor .st-properties .st-muted,
+#pptStudio .st-editor .st-bottom,
+#pptStudio .st-editor .st-bottom label,
+#pptStudio .st-editor .st-notes,
+#pptStudio .st-editor .save-state,
+#pptStudio .st-editor small,
+#pptStudio .st-editor .st-thumbs>header small,
+#pptStudio .st-editor .st-insertbar>span{color:#737e95}
+#pptStudio .st-editor .st-thumb{background:#fff;border-color:#e0e2eb;box-shadow:0 2px 5px #34345106}
+#pptStudio .st-editor .st-thumb.active{background:#f1edff;border-color:#9464ee;box-shadow:0 0 0 1px #9464ee20}
+#pptStudio .st-editor .st-thumb>span{background:#59647dde;color:#fff}
+#pptStudio .st-editor .st-edit-stage .st-stage{box-shadow:0 5px 24px #3842691a}
+#pptStudio .st-editor .st-page-assistant{background:#f8f7ff;border-color:#ddd8f0;color:#46516f}
+#pptStudio .st-editor .st-page-assistant small{color:#7d86a0}
+#pptStudio .st-editor button:focus-visible,
+#pptStudio .st-editor input:focus-visible,
+#pptStudio .st-editor textarea:focus-visible{outline:2px solid #9274ee;outline-offset:2px}
+#pptStudio .st-editor .st-insertbar button{background:#fff;color:#505b73;border-color:#dfe1ea}
+#pptStudio .st-editor .st-insertbar button:hover{background:#f0edff;color:#6c4ed0;border-color:#c6b9fb}
+#pptStudio .st-tool:has(.st-editor) .st-workspace-status{background:#f3f3f7;color:#737e95;border-color:#e0e1e9}
+#pptStudio .st-editor input[type="range"]{appearance:none;-webkit-appearance:none;height:6px;padding:0;background:#d9ddea;border:0;border-radius:8px;accent-color:#637cff}
+#pptStudio .st-editor input[type="range"]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:16px;height:16px;background:#637cff;border:0;border-radius:50%;cursor:pointer}
+#pptStudio .st-editor input[type="range"]::-moz-range-thumb{width:16px;height:16px;background:#637cff;border:0;border-radius:50%;cursor:pointer}
